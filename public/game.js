@@ -1,4 +1,4 @@
-var myX, myY;
+var myX, myY, mySize = 20;
 var x = 1920, y = 1080;
 var GridSize = 50;
 var canvas = document.getElementById("canvas-id");
@@ -15,11 +15,33 @@ function initGame(){
     myY = sharedStorage.getForMe("myX");
 }
 
+function collision (p1x, p1y, r1, p2x, p2y, r2){
+    var a;
+    var x;
+    var y;
+
+    a = r1 + r2;
+    x = p1x - p2x;
+    y = p1y - p2y;
+
+    if(a > Math.sqrt((x * x) + (y * y))){
+        return true;
+    } else {
+        return false;
+    }   
+}
+
 function update() {
 	myX = myX+(mouseX-myX)/10;
 	myY = myY+(mouseY-myY)/10;
     sharedStorage.setForMe("myX", myX);
     sharedStorage.setForMe("myY", myY);
+
+    // Collison testing //
+    console.log("[Collision testing] You need 2 players! You can test it in 1 of the windows");
+    console.log(collision(myX , myY , mySize, sharedStorage.getForUser(1, "myX") ,sharedStorage.getForUser(1, "myY") , mySize) );
+    //////////////////////
+
 }
 	
 var p = 0;
@@ -42,7 +64,7 @@ function draw() {
         if (sharedStorage.list[i]){
 
             context.beginPath();
-            context.arc(sharedStorage.getForUser(i, "myX"), sharedStorage.getForUser(i, "myY"), 20, 0, 2 * Math.PI);
+            context.arc(sharedStorage.getForUser(i, "myX"), sharedStorage.getForUser(i, "myY"), mySize, 0, 2 * Math.PI);
             context.fill();
             
             
