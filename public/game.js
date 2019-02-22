@@ -49,6 +49,6 @@ function draw() {
     
     
 }
-
+document.addEventListener('contextmenu', event => event.preventDefault());
 function keyup(key) {}
 function mouseup() {}
