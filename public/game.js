@@ -1,9 +1,9 @@
 var myX, myY;
-var x = 1600, y = 1600;
-var GridSize = 30;
+var x = 1920, y = 1080;
+var GridSize = 50;
 var canvas = document.getElementById("canvas-id");
-canvas.width  = window.innerWidth-3;
-canvas.height = window.innerHeight-3;
+canvas.width  = window.innerWidth-5;
+canvas.height = window.innerHeight-5;
 
 function initGame(){
     //set initial properties of current user
