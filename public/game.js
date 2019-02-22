@@ -1,6 +1,9 @@
 var myX, myY;
 var x = 1600, y = 1600;
 var GridSize = 30;
+var canvas = document.getElementById("canvas-id");
+canvas.width  = window.innerWidth-3;
+canvas.height = window.innerHeight-3;
 
 function initGame(){
     //set initial properties of current user
@@ -44,11 +47,9 @@ function draw() {
             
             
         }
-    }
-
-    
-    
+    }    
 }
+
 document.addEventListener('contextmenu', event => event.preventDefault());
 function keyup(key) {}
 function mouseup() {}
