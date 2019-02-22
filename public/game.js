@@ -16,6 +16,9 @@ function initGame(){
 }
 
 function collision (p1x, p1y, r1, p2x, p2y, r2){
+
+    if(p1x == p2x && p1y == p2y && r1 == r2) return false;
+
     var a;
     var x;
     var y;
@@ -37,10 +40,15 @@ function update() {
     sharedStorage.setForMe("myX", myX);
     sharedStorage.setForMe("myY", myY);
 
-    // Collison testing //
-    console.log("[Collision testing] You need 2 players! You can test it in 1 of the windows");
-    console.log(collision(myX , myY , mySize, sharedStorage.getForUser(1, "myX") ,sharedStorage.getForUser(1, "myY") , mySize) );
-    //////////////////////
+
+    for (var i=0; i<sharedStorage.list.length; ++i){
+        if (sharedStorage.list[i]){
+            if(collision(myX , myY , mySize, sharedStorage.getForUser(i, "myX") ,sharedStorage.getForUser(i, "myY") , mySize)){
+                console.log("Collison Detected!");
+            }
+        }
+    }  
+
 
 }
 	
