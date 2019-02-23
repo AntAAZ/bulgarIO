@@ -73,8 +73,7 @@ var context = canvas.getContext("2d");
 
 // global variables with mouse coordinates
 var mouseX = 0,
-    mouseY = 0,
-    gridSize = 50;
+    mouseY = 0;
 
 var reqAnimationFrame =
     window.requestAnimationFrame ||
@@ -88,17 +87,7 @@ var reqAnimationFrame =
 function redraw() {
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.globalAlpha = 1;
-    context.fillStyle = "#4aaabc";
-    context.beginPath();
-    for (i = gridSize; i < canvas.width; i += gridSize) {
-        context.moveTo(i * zoom + cameraX, 0);
-        context.lineTo(i * zoom + cameraX, canvas.height);
-    }
-    for (i = gridSize; i < canvas.height; i += gridSize) {
-        context.moveTo(0, i * zoom + cameraY);
-        context.lineTo(canvas.width, i * zoom + cameraY);
-    }
-    context.stroke();
+
     draw();
     reqAnimationFrame(redraw);
 }
