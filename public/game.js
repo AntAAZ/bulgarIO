@@ -108,6 +108,11 @@ function update() {
             }
         }
     }
+    
+    if(myX > 10000)myX = 9999;
+    if(myY > 10000)myY = 9999;
+    if(myX < -10000)myX = -9999;
+    if(myY < -10000)myY = -9999;
 }
 
 function draw() {
@@ -144,6 +149,7 @@ function draw() {
             }
         }
     }
+    
 }
 
 document.addEventListener('contextmenu', event => event.preventDefault());
