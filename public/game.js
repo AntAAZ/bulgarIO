@@ -14,6 +14,7 @@ var fdX = [],
     fdSize = 10,
     fdColor = [],
     bloopsCount = 0;
+    var score_arr = {};
 
 function initGame() {
     //set initial properties of current user
@@ -119,7 +120,7 @@ function draw() {
 
     context.fillStyle = "white";
     context.font = "25px Italic Verdana";
-    context.fillText(`{x => ${myX.toFixed(1)} | y => ${myY.toFixed(1)}]`, 50, 50);
+    context.fillText(`{x => ${myX.toFixed(1)} | y => ${myY.toFixed(1)}] | score = ${Math.round(mySize)}`, 50, 50);
 
     zoom = 50 / mySize;
     cameraX = canvas.width / 2 - myX * zoom;
@@ -150,16 +151,26 @@ function draw() {
         }
     }
     var step = 50;
-    for(var i=0; i< sharedStorage.list.length && i <= 10; i++){
+    
+    for(var i=0; i< sharedStorage.list.length; i++){
         if(sharedStorage.list[i]){
-            var score = sharedStorage.getForUser(i,'mySize');
+            
+            //score_arr[i] = Math.round(sharedStorage.getForUser(i,'mySize'));
+            //var score = sharedStorage.getForUser(i,'mySize');
+            score_arr[`Player ${i}`] = Math.round(sharedStorage.getForUser(i,'mySize'));
+            keysSorted = Object.keys(score_arr).sort(function(a,b){return score_arr[a]-score_arr[b]})
+//console.log(keysSorted);
+            //for (var key in keysSorted) {
+            //    console.log("key " + key + " has value " + keysSorted[key]);
+            //}
             context.fillStyle = "white";
             context.font = "25px Italic Verdana";
-            context.fillText(`Player ${i} = ${score}`,1000,step);
-            step+=50;
-            
         }
     }
+    for(var j=0; j< sharedStorage.list.length && j < 10; j++){
+                context.fillText(`${keysSorted[j]}`,1050,step);
+                step+=30;
+            }
     
 }
 
