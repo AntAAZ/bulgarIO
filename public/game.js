@@ -1,8 +1,9 @@
 //non oop fr now
 var myX, myY, mySize = 50,
     minSize = mySize,
-	mapSize = 10000;
-    speed = 3;
+    mapSize = 10000,
+	speed = 3;
+
 var canvas = document.getElementById("canvas-id");
 document.body.style.background = "rgba(9, 10, 10, 0.9)";
 canvas.width = window.innerWidth - 5;
@@ -16,8 +17,8 @@ var fdX = [],
 
 function initGame() {
     //set initial properties of current user
-    sharedStorage.setForMe("myX", -mapSize + Math.random() * mapSize*2);
-    sharedStorage.setForMe("myY", -mapSize + Math.random() * mapSize*2);
+    sharedStorage.setForMe("myX", -mapSize + Math.random() * mapSize * 2);
+    sharedStorage.setForMe("myY", -mapSize + Math.random() * mapSize * 2);
     sharedStorage.setForMe("mySize", minSize);
     sharedStorage.setForMe("myColor", getRandomColor());
 
@@ -28,8 +29,8 @@ function initGame() {
     myColor = sharedStorage.getForMe("myColor");
 
     for (var i = 0; i < mapSize; i++) {
-        var x = -mapSize + Math.random() * mapSize*2;
-        var y = -mapSize + Math.random() * mapSize*2;
+        var x = -mapSize + Math.random() * mapSize * 2;
+        var y = -mapSize + Math.random() * mapSize * 2;
         fdX[i] = x;
         fdY[i] = y;
         fdColor[i] = getRandomColor();
@@ -110,9 +111,11 @@ function update() {
 }
 
 function draw() {
-	context.fillStyle = "white";
-	context.font = "25px Italic Verdana";
-	context.fillText(`{x => ${myX.toFixed(1)} | y => ${myY.toFixed(1)}]`, 50, 50);
+
+    context.fillStyle = "white";
+    context.font = "25px Italic Verdana";
+    context.fillText(`{x => ${myX.toFixed(1)} | y => ${myY.toFixed(1)}]`, 50, 50);
+
     zoom = 50 / mySize;
     cameraX = canvas.width / 2 - myX * zoom;
     cameraY = canvas.height / 2 - myY * zoom;
