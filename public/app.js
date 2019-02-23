@@ -91,12 +91,12 @@ function redraw() {
     context.fillStyle = "#4aaabc";
     context.beginPath();
     for (i = gridSize; i < canvas.width; i += gridSize) {
-        context.moveTo(i, 0);
-        context.lineTo(i, canvas.height);
+        context.moveTo(i * zoom + cameraX, 0);
+        context.lineTo(i * zoom + cameraX, canvas.height);
     }
     for (i = gridSize; i < canvas.height; i += gridSize) {
-        context.moveTo(0, i);
-        context.lineTo(canvas.width, i);
+        context.moveTo(0, i * zoom + cameraY);
+        context.lineTo(canvas.width, i * zoom + cameraY);
     }
     context.stroke();
     draw();
