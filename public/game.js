@@ -149,6 +149,17 @@ function draw() {
             }
         }
     }
+    var step = 50;
+    for(var i=0; i< sharedStorage.list.length && i <= 10; i++){
+        if(sharedStorage.list[i]){
+            var score = sharedStorage.getForUser(i,'mySize');
+            context.fillStyle = "white";
+            context.font = "25px Italic Verdana";
+            context.fillText(`Player ${i} = ${score}`,1000,step);
+            step+=50;
+            
+        }
+    }
     
 }
 
