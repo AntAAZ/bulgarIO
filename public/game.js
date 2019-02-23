@@ -109,10 +109,10 @@ function update() {
         }
     }
     
-    if(myX > 10000)myX = 9999;
-    if(myY > 10000)myY = 9999;
-    if(myX < -10000)myX = -9999;
-    if(myY < -10000)myY = -9999;
+    if(myX > mapSize)myX = mapSize;
+    if(myY > mapSize)myY = mapSize;
+    if(myX < -mapSize)myX = -mapSize;
+    if(myY < -mapSize)myY = -mapSize;
 }
 
 function draw() {
