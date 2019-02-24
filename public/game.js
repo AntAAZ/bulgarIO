@@ -154,15 +154,9 @@ function draw() {
     
     for(var i=0; i< sharedStorage.list.length; i++){
         if(sharedStorage.list[i]){
-            
-            //score_arr[i] = Math.round(sharedStorage.getForUser(i,'mySize'));
-            //var score = sharedStorage.getForUser(i,'mySize');
             score_arr[`Player ${i}`] = Math.round(sharedStorage.getForUser(i,'mySize'));
             keysSorted = Object.keys(score_arr).sort(function(a,b){return score_arr[a]-score_arr[b]})
-//console.log(keysSorted);
-            //for (var key in keysSorted) {
-            //    console.log("key " + key + " has value " + keysSorted[key]);
-            //}
+            keysSorted = keysSorted.reverse();
             context.fillStyle = "white";
             context.font = "25px Italic Verdana";
         }
