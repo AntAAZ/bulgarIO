@@ -81,7 +81,7 @@ var reqAnimationFrame =
     window.webkitRequestAnimationFrame ||
     window.msRequestAnimationFrame ||
     function(callback) {
-        setTimeout(callback, 1000 / 30);
+        setTimeout(callback, 1);
     }
 
 function redraw() {

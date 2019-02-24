@@ -2,7 +2,7 @@
 var myX, myY, mySize = 50,
     minSize = mySize,
     mapSize = 10000,
-	speed = 3;
+    speed = 3;
 
 var canvas = document.getElementById("canvas-id");
 document.body.style.background = "rgba(9, 10, 10, 0.9)";
@@ -14,7 +14,7 @@ var fdX = [],
     fdSize = 10,
     fdColor = [],
     bloopsCount = 0;
-    var score_arr = {};
+var score_arr = {};
 
 function initGame() {
     //set initial properties of current user
@@ -47,7 +47,7 @@ function respawn() {
     //get properties for current user (no latency for this action)
     myX = sharedStorage.getForMe("myX");
     myY = sharedStorage.getForMe("myY");
-    mySize = sharedStorage.getForMe("mySize"); 
+    mySize = sharedStorage.getForMe("mySize");
 }
 
 function getRandomColor() {
@@ -72,36 +72,27 @@ function collision(p1x, p1y, r1, p2x, p2y, r2) {
     return false;
 }
 
-function expand(p1size, p2size) {
-    return Math.sqrt(p1size * p1size + p2size * p2size);
+function expand(r1, r2) {
+    return Math.sqrt(r1 * r1 + r2 * r2);
 }
 
 var cameraX, cameraY, vecX, vecY, vecLen, zoom;
 
 function update() {
-    zoom = minSize / mySize;
-    cameraX = canvas.width / 2 - myX * zoom;
-    cameraY = canvas.height / 2 - myY * zoom;
+    var zoom = minSize / mySize;
+    var radians = Math.atan2(mouseY - canvas.height / 2, mouseX - canvas.width / 2);
+    myX = myX + Math.cos(radians) * speed;
+    myY = myY + Math.sin(radians) * speed;
 
-    vecX = mouseX - cameraX - myX * zoom;
-    vecY = mouseY - cameraY - myY * zoom;
-    vecLen = Math.sqrt(vecX * vecX + vecY * vecY);
-    vecX /= vecLen;
-    vecY /= vecLen;
-    myX = myX + vecX * speed;
-    myY = myY + vecY * speed;
-    
-    mySize = sharedStorage.getForMe("mySize", mySize);
-    if(mySize == 0){
+    if (!(mySize = sharedStorage.getForMe("mySize", mySize))) {
         respawn();
     }
-    
+
     sharedStorage.setForMe("myX", myX);
     sharedStorage.setForMe("myY", myY);
 
-    // Eating bloops
     for (var i = 0; i < bloopsCount; ++i) {
-        if (collision(myX, myY, mySize - 2 * fdSize, fdX[i], fdY[i], fdSize)) {
+        if (collision(myX, myY, mySize - fdSize, fdX[i], fdY[i], fdSize)) {
             fdX.splice(i, 1);
             fdY.splice(i, 1);
             fdColor.splice(i, 1);
@@ -112,76 +103,78 @@ function update() {
 
     }
 
-    // collision between players
     for (var i = 0; i < sharedStorage.list.length; ++i) {
         if (sharedStorage.list[i]) {
-            if (collision(myX, myY, mySize - 2 * sharedStorage.getForUser(i, "mySize"), sharedStorage.getForUser(i, "myX"),
+            if (sharedStorage.id != i && collision(myX, myY, mySize - sharedStorage.getForUser(i, "mySize"), sharedStorage.getForUser(i, "myX"),
                     sharedStorage.getForUser(i, "myY"),
                     sharedStorage.getForUser(i, "mySize"))) {
-
                 mySize = expand(mySize, sharedStorage.getForUser(i, "mySize"));
                 sharedStorage.setForMe("mySize", mySize);
                 sharedStorage.setForUser(i, "mySize", 0);
             }
         }
     }
-    
-    if(myX > mapSize)myX = mapSize;
-    if(myY > mapSize)myY = mapSize;
-    if(myX < -mapSize)myX = -mapSize;
-    if(myY < -mapSize)myY = -mapSize;
+
+    if (myX > mapSize) myX = mapSize;
+    if (myY > mapSize) myY = mapSize;
+    if (myX < -mapSize) myX = -mapSize;
+    if (myY < -mapSize) myY = -mapSize;
+
 }
 
 function draw() {
+    var zoom = minSize / mySize;
 
     context.fillStyle = "white";
-    context.font = "25px Italic Verdana";
-    context.fillText(`{x => ${myX.toFixed(1)} | y => ${myY.toFixed(1)}] | score = ${Math.round(mySize)}`, 50, 50);
+    context.font = "20px Italic Verdana";
+    context.fillText(`{x => ${myX.toFixed(1)} | y => ${myY.toFixed(1)}}`, 30, 30);
 
-    zoom = 50 / mySize;
-    cameraX = canvas.width / 2 - myX * zoom;
-    cameraY = canvas.height / 2 - myY * zoom;
+    context.save();
+    context.resetTransform();
+    context.translate(canvas.width / 2, canvas.height / 2);
+
+    context.scale(Math.sqrt(zoom), Math.sqrt(zoom));
+    context.translate(-myX, -myY);
 
     //cameraX = canvas.width / 2 - myX, cameraY = canvas.height / 2 - myY;
     for (var i = 0; i < bloopsCount; ++i) {
-        var x = fdX[i] * zoom + cameraX,
-            y = fdY[i] * zoom + cameraY;
-        if (x > -fdSize && x < canvas.width + fdSize && y > -fdSize && y < canvas.height + fdSize) {
+        ;
+        if (fdX[i] * zoom + fdSize > myX * zoom - canvas.width / 2 && fdX[i] * zoom - fdSize < myX * zoom + canvas.width / 2 + mySize &&
+            fdY[i] * zoom + fdSize > myY * zoom - canvas.height / 2 && fdY[i] * zoom - fdSize < myY * zoom + canvas.height / 2 + mySize) {
             context.beginPath();
             context.fillStyle = fdColor[i];
-            context.arc(x, y, fdSize * zoom, 0, 2 * Math.PI);
+            context.arc(fdX[i], fdY[i], fdSize, 0, 2 * Math.PI);
             context.fill();
         }
     }
     for (var i = 0; i < sharedStorage.list.length; ++i) {
         if (sharedStorage.list[i]) {
-            var x = sharedStorage.getForUser(i, "myX") * zoom + cameraX;
-            var y = sharedStorage.getForUser(i, "myY") * zoom + cameraY;
-            var size = sharedStorage.getForUser(i, "mySize") * zoom;
-            if (sharedStorage.id == i || (x > -size && x < canvas.width + size && y > -size && y < canvas.height + size)) {
-                context.beginPath();
-                context.fillStyle = sharedStorage.getForUser(i, "myColor");
-                context.arc(x, y, size, 0, 2 * Math.PI);
-                context.fill();
-            }
+            var x = sharedStorage.getForUser(i, "myX");
+            var y = sharedStorage.getForUser(i, "myY");
+            var size = sharedStorage.getForUser(i, "mySize");
+            context.beginPath();
+            context.fillStyle = sharedStorage.getForUser(i, "myColor");
+            context.arc(x, y, size, 0, 2 * Math.PI);
+            context.fill();
         }
     }
+    context.restore();
+
     var step = 50;
-    
-    for(var i=0; i< sharedStorage.list.length; i++){
-        if(sharedStorage.list[i]){
-            score_arr[`Player ${i}`] = Math.round(sharedStorage.getForUser(i,'mySize'));
-            keysSorted = Object.keys(score_arr).sort(function(a,b){return score_arr[a]-score_arr[b]})
+    for (var i = 0; i < sharedStorage.list.length; i++) {
+        var score_arr = {};
+        if (sharedStorage.list[i]) {
+            score_arr[`Player ${i}`] = Math.round(sharedStorage.getForUser(i, 'mySize'));
+            keysSorted = Object.keys(score_arr).sort(function(a, b) {
+                return score_arr[a] - score_arr[b];
+            })
             keysSorted = keysSorted.reverse();
             context.fillStyle = "white";
-            context.font = "25px Italic Verdana";
+            context.font = "20px Italic Verdana";
+            context.fillText(`${keysSorted[i]} -> ${score_arr[keysSorted[i]]}`, canvas.width - 200, step);
+            step += 25;
         }
     }
-    for(var j=0; j< sharedStorage.list.length && j < 10; j++){
-                context.fillText(`${keysSorted[j]}`,1050,step);
-                step+=30;
-            }
-    
 }
 
 document.addEventListener('contextmenu', event => event.preventDefault());
