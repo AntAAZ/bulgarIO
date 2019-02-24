@@ -39,6 +39,17 @@ function initGame() {
     }
 }
 
+function respawn() {
+    sharedStorage.setForMe("myX", -mapSize + Math.random() * mapSize * 2);
+    sharedStorage.setForMe("myY", -mapSize + Math.random() * mapSize * 2);
+    sharedStorage.setForMe("mySize", minSize);
+
+    //get properties for current user (no latency for this action)
+    myX = sharedStorage.getForMe("myX");
+    myY = sharedStorage.getForMe("myY");
+    mySize = sharedStorage.getForMe("mySize"); 
+}
+
 function getRandomColor() {
     var red = Math.floor(Math.random() * 256);
     var green = 100 + Math.floor(Math.random() * 156);
@@ -79,7 +90,12 @@ function update() {
     vecY /= vecLen;
     myX = myX + vecX * speed;
     myY = myY + vecY * speed;
-
+    
+    mySize = sharedStorage.getForMe("mySize", mySize);
+    if(mySize == 0){
+        respawn();
+    }
+    
     sharedStorage.setForMe("myX", myX);
     sharedStorage.setForMe("myY", myY);
 
