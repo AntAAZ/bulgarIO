@@ -3,7 +3,8 @@
   "version": "0.0.1",
   "description": "Implementation of agar.io",
   "dependencies": {
-    "express": "^4.14.0",
+    "babel": "^6.23.0",
+    "express": "^4.16.4",
     "socket.io": "^1.7.2"
   }
 }
