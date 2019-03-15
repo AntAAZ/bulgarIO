@@ -4,14 +4,10 @@ var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
-app.get('/', function(req, res) {
-    res.sendFile(__dirname + '/index.html');
-});
-app.get('/game.js', function(req, res) {
-    res.sendFile(__dirname + '/game.js');
-});
+app.use(express.static('public'));
 
 var bloops = new Map(),
+    leaderboard = new Map(),
     foods = [],
     mapSize = 10000;
 
@@ -27,7 +23,7 @@ for (var i = 0; i < mapSize; i++) {
 io.on('connection', function(socket) {
 
     console.log(`ID ${socket.id} connected!`);
-    socket.emit('spawnFoods', foods);
+    socket.emit('init', foods);
 
     socket.on('update', function(data) {
         if (data.id != undefined) {
@@ -40,10 +36,16 @@ io.on('connection', function(socket) {
                 'color': data.color,
                 'radius': data.radius
             });
-
             socket.broadcast.emit('update', data);
         }
 
+    });
+    socket.on('leaderboard', function(score) {
+        leaderboard.set(socket.id, score);
+        socket.broadcast.emit('leaderboard', {
+            'id': socket.id,
+            'score': score
+        });
     });
     socket.on('eat', function(data) {
         if (data.id != undefined) {

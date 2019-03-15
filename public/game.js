@@ -1,8 +1,10 @@
 /// TO:DO -> move classes/global constants into other files
-var socket, mybloop, foods, zoom = 1,
+var socket, foods = [],
+    zoom = 1,
     mapSize = 10000,
-    bloopSize = 64,
-    bloops = new Map();
+    bloopSize = 50,
+    bloops = new Map(),
+    leaderboard = new Map();
 
 class Food {
 
@@ -33,12 +35,6 @@ class Bloop extends Food {
 
     eat(other) {
         this.radius = sqrt(pow(this.radius, 2) + pow(other.radius, 2));
-
-        if (other instanceof Bloop) {
-            socket.emit('eat', {
-                'id': other.id
-            });
-        }
     }
 
     intersects(other) {
@@ -77,6 +73,34 @@ function showLoadingScreen(message) {
 
     fill(255);
     text(message, innerWidth / 2, innerHeight / 5);
+
+
+}
+/// a function to show the leaderboard
+function showLeaderboard(limit) {
+
+    let index = 0,
+        sorted_leaderboard = new Map();
+
+    leaderboard.forEach(function(value, key) {
+        sorted_leaderboard.set(value, key);
+    });
+
+    sorted_leaderboard = new Map([...sorted_leaderboard.entries()].sort((a, b) => parseInt(a) < parseInt(b)));
+
+    textFont("Courier New");
+    textAlign(RIGHT);
+    sorted_leaderboard.forEach(function(key, value) {
+        textSize(innerWidth / 75);
+        fill(170);
+        if (key == socket.id) {
+            fill(color([255, 215, 0]));
+        }
+        text(`${key}  ---  ${floor(value)}`, innerWidth - 50, (++index) * (innerWidth / 100) + 10);
+        if (index == limit) {
+            return;
+        }
+    });
 }
 /// a function to show a player's coordinates
 function showCoordinates(data) {
@@ -84,7 +108,7 @@ function showCoordinates(data) {
     textSize(innerWidth / 75);
     textAlign(LEFT);
 
-    fill(255);
+    fill(color([240, 230, 140]));
     text(`<${floor(data.x)},${floor(data.y)}>`, 50, 50);
 }
 
@@ -96,32 +120,37 @@ function setup() {
     /// connecting the player
     socket = io.connect('http://localhost:3000');
 
-    /// generating your player object (x : float, y : float, color : array[3], id : string)
-    mybloop = new Bloop(random(-mapSize, mapSize), random(-mapSize, mapSize), bloopSize, [random(100, 256), random(100, 256), random(200, 256)], socket.id);
-
-    /// inserting your player object into your map of clients
-    bloops.set(socket.id, mybloop);
-
     /// setting foods for you
-    socket.on('spawnFoods', function(data) {
-        foods = [];
-        for (var i = 0; i < data.length; i++) {
-            foods[i] = new Food(data[i].x, data[i].y, bloopSize / 4, data[i].color);
-        }
+    socket.on('init', function(data) {
+
+        /// setting your player object (x : float, y : float, color : array[3], id : string)
+        let mybloop = new Bloop(random(-mapSize, mapSize), random(-mapSize, mapSize), bloopSize, [random(100, 256), random(100, 256), random(200, 256)], socket.id);
+
+        /// inserting your player object into your map of clients and leaderboard
+        bloops.set(socket.id, mybloop);
+        leaderboard.set(socket.id, mybloop.radius);
+
+        /// pushing the foods received from the server to your array of foods
+        data.forEach(function(food) {
+            foods.push(new Food(food.x, food.y, bloopSize / 4, food.color));
+        });
+
+        /// sending your client data to the server
+        socket.emit('update', {
+            'id': mybloop.id,
+            'x': mybloop.x,
+            'y': mybloop.y,
+            'radius': mybloop.radius,
+            'color': mybloop.color
+        });
+        socket.emit('leaderboard', mybloop.radius);
     });
 
-    /// sending your client data to the server
-    socket.emit('update', {
-        'id': socket.id,
-        'x': mybloop.x,
-        'y': mybloop.y,
-        'radius': mybloop.radius,
-        'color': mybloop.color
-    });
+
 
     /// respawning the clients that got eaten for you on eat (socket.broadcast.emit on the server side)
     socket.on('respawn', function(data) {
-        var bloop = new Bloop(random(-mapSize, mapSize), random(-mapSize, mapSize), bloopSize, [random(100, 256), random(100, 256), random(200, 256)], data.id);
+        let bloop = new Bloop(random(-mapSize, mapSize), random(-mapSize, mapSize), bloopSize, [random(100, 256), random(100, 256), random(200, 256)], data.id);
 
         //console.log(`Updating for you(${socket.id}) -> Respawning ${bloop.id} at => ${bloop.x}:${bloop.y}`);
 
@@ -130,7 +159,7 @@ function setup() {
 
     /// updating the coordinates of the other clients for you on update (socket.broadcast.emit on the server side)
     socket.on('update', function(data) {
-        var bloop = new Bloop(data.x, data.y, data.radius, data.color, data.id);
+        let bloop = new Bloop(data.x, data.y, data.radius, data.color, data.id);
         bloop.pos = createVector(data.posx, data.posy);
 
         //console.log(`Updating for you(${socket.id}) -> Setting coordinates for ${data.id} => ${data.posx}:${data.posy}`);
@@ -145,8 +174,14 @@ function setup() {
 
     /// deleting a client from your map of clients on disconnection (socket.broadcast.emit on the server side)
     socket.on('delete', function(data) {
-        //console.log(`Updating for you(${socket.id}) -> Removing ${data.id} client from your map of clients`);
+        //console.log(`Updating for you(${socket.id}) -> Removing ${data.id} client from your map of clients and leaderboard`);
         bloops.delete(data.id);
+        leaderboard.delete(data.id);
+    });
+
+    /// updating the leaderboard scores for you on leaderboard (socket.broadcast.emit on the server side)
+    socket.on('leaderboard', function(data) {
+        leaderboard.set(data.id, data.score);
     });
 }
 
@@ -154,23 +189,28 @@ function draw() {
 
     background(0); /// sets the background color to black
 
-    if (!(foods instanceof Array)) {
-        showLoadingScreen('loading food/bloops ...');
+    if (socket.id == undefined) {
+        showLoadingScreen('Connecting...');
         return;
     }
+
+    let mybloop = bloops.get(socket.id);
+    showLeaderboard(5);
+
     showCoordinates({
         'x': mybloop.pos.x,
         'y': mybloop.pos.y
     });
+
     /// the player sees themselves at the center of the canvas and other objects within range //
     translate(width / 2, height / 2);
     zoom = lerp(zoom, bloopSize / mybloop.radius, 0.1);
-    scale(zoom);
+    scale(Math.sqrt(zoom));
     translate(-mybloop.pos.x, -mybloop.pos.y);
     ////////////////////////////////////////////////////////////////////////////////////////////
 
     /// interating through the foods
-    foods.filter(food => mybloop.has_visibility_for(food, zoom)).forEach(function(food) {
+    foods.filter(food => mybloop.has_visibility_for(food, sqrt(zoom))).forEach(function(food) {
         food.show();
         if (mybloop.intersects(food) && mybloop.radius > food.radius) {
 
@@ -180,6 +220,7 @@ function draw() {
 
             mybloop.eat(food);
             foods.splice(index, 1);
+
             socket.emit('removeFood', {
                 'index': index
             });
@@ -189,11 +230,15 @@ function draw() {
     /// iterating through the map of clients to draw them & handle collision checks
     bloops.forEach(function(bloop) {
         /// do this only when we can see the other player
-        if (mybloop.has_visibility_for(bloop, zoom)) {
+        if (mybloop.has_visibility_for(bloop, sqrt(zoom))) {
             bloop.show();
             /// eat another bloop only if you are 25% bigger
             if (mybloop.intersects(bloop) && mybloop.radius / bloop.radius > 1.25) {
                 mybloop.eat(bloop);
+
+                socket.emit('eat', {
+                    'id': bloop.id
+                });
             }
         }
     });
@@ -204,12 +249,15 @@ function draw() {
     mybloop.update(); /// updates the new coordinates of your player object
     mybloop.constrain(); /// keeps your player object inside the map
 
+
+    leaderboard.set(socket.id, mybloop.radius);
+
     bloops.set(socket.id, mybloop); /// inserts your player object with the updated properties
 
 
     /// sending your new client data to the server
     socket.emit('update', {
-        'id': socket.id,
+        'id': mybloop.id,
         'x': mybloop.x,
         'y': mybloop.y,
         'posx': mybloop.pos.x,
@@ -217,4 +265,5 @@ function draw() {
         'radius': mybloop.radius,
         'color': mybloop.color
     });
+    socket.emit('leaderboard', mybloop.radius);
 }
