@@ -24,11 +24,14 @@ io.on('connection', function(socket) {
 
     console.log(`ID ${socket.id} connected!`);
     socket.emit('init', foods);
-	
-	leaderboard.forEach(function(value, key){
-		socket.emit('leaderboard', {'id': key, 'score': value });
-	});
-	
+
+    leaderboard.forEach(function(value, key) {
+        socket.emit('leaderboard', {
+            'id': key,
+            'score': value
+        });
+    });
+
     socket.on('update', function(data) {
         if (data.id != undefined) {
             bloops.set(data.id, {
@@ -45,7 +48,7 @@ io.on('connection', function(socket) {
     });
     socket.on('leaderboard', function(score) {
         leaderboard.set(socket.id, score);
-		
+
         socket.broadcast.emit('leaderboard', {
             'id': socket.id,
             'score': score
@@ -54,17 +57,19 @@ io.on('connection', function(socket) {
     socket.on('eat', function(data) {
         if (data.id != undefined) {
             console.log(`ID ${data.id} was eaten! Respawning...`);
-			
-			let bloop = {'x': -mapSize + Math.random() * mapSize * 2, 
-						 'y': -mapSize + Math.random() * mapSize * 2, 
-						 'radius': 50, 
-						 'color': data.color, 
-						 'id': data.id  };
-			
-			bloop.posx = bloop.x;
-			bloop.posy = bloop.y;
-			
-			io.emit('update', bloop);
+
+            let bloop = {
+                'x': -mapSize + Math.random() * mapSize * 2,
+                'y': -mapSize + Math.random() * mapSize * 2,
+                'radius': 50,
+                'color': data.color,
+                'id': data.id
+            };
+
+            bloop.posx = bloop.x;
+            bloop.posy = bloop.y;
+
+            io.emit('update', bloop);
         }
     });
     socket.on('removeFood', function(data) {
@@ -80,8 +85,8 @@ io.on('connection', function(socket) {
     socket.on('disconnect', function() {
 
         bloops.delete(socket.id);
-		leaderboard.delete(socket.id);
-		
+        leaderboard.delete(socket.id);
+
         console.log(`ID ${socket.id} disconnected!`);
 
         socket.broadcast.emit('delete', {

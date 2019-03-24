@@ -37,10 +37,9 @@ class Bloop extends Food {
 
         this.radius = sqrt(pow(this.radius, 2) + pow(other.radius, 2));
 
-		if (!(other instanceof Bloop))
-		{
-        	this.radius = sqrt(pow(this.radius, 2) + pow(other.radius, 1.25));
-		}
+        if (!(other instanceof Bloop)) {
+            this.radius = sqrt(pow(this.radius, 2) + pow(other.radius, 1.25));
+        }
     }
 
     intersects(other) {
@@ -61,7 +60,7 @@ class Bloop extends Food {
 
     update() {
         var new_velocity = createVector(mouseX - width / 2, mouseY - height / 2);
-        new_velocity.setMag(10*(sqrt(zoom)));
+        new_velocity.setMag(10 * (sqrt(zoom)));
         this.vel.lerp(new_velocity, 0.2);
         this.pos.add(this.vel);
     }
@@ -85,16 +84,18 @@ function showLoadingScreen(message) {
 /// a function to show the leaderboard (To do better)
 function showLeaderboard(limit) {
 
-    let index = 0, entries = [], sorted_leaderboard;
-	
-	for(var entry of leaderboard){
-		entries.push(entry);
-	}
-	
-	entries.sort(function (a, b){
-		return parseInt(a[1]) < parseInt(b[1]);
-	});
-	
+    let index = 0,
+        entries = [],
+        sorted_leaderboard;
+
+    for (var entry of leaderboard) {
+        entries.push(entry);
+    }
+
+    entries.sort(function(a, b) {
+        return parseInt(a[1]) < parseInt(b[1]);
+    });
+
     sorted_leaderboard = new Map(entries);
 
     textFont("Courier New");
@@ -139,8 +140,8 @@ function setup() {
 
         /// inserting your player object into your map of clients and leaderboard
         bloops.set(socket.id, mybloop);
-		leaderboard.set(socket.id, mybloop.radius);
-		  
+        leaderboard.set(socket.id, mybloop.radius);
+
         /// pushing the foods received from the server to your array of foods
         data.forEach(function(food) {
             foods.push(new Food(food.x, food.y, bloopSize / 4, food.color));
@@ -154,7 +155,7 @@ function setup() {
             'radius': mybloop.radius,
             'color': mybloop.color
         });
-		socket.emit('leaderboard', mybloop.radius);
+        socket.emit('leaderboard', mybloop.radius);
     });
     /// updating the coordinates of the other clients for you on update (socket.broadcast.emit on the server side)
     socket.on('update', function(data) {
@@ -188,7 +189,7 @@ function draw() {
 
     background(0); /// sets the background color to black
 
-	/// show something else while the socket is being initialized
+    /// show something else while the socket is being initialized
     if (!socket.connected) {
         showLoadingScreen('Connecting...');
         return;
@@ -234,22 +235,22 @@ function draw() {
             bloop.show();
             /// eat another bloop only if you are 25% bigger
             if (mybloop.intersects(bloop)) {
-				let radius_ratio = mybloop.radius / bloop.radius;
-				if(radius_ratio > 1.25){
-					mybloop.eat(bloop);
+                let radius_ratio = mybloop.radius / bloop.radius;
+                if (radius_ratio > 1.25) {
+                    mybloop.eat(bloop);
 
-					socket.emit('eat', {
-                    	'id': bloop.id,
-						'color': bloop.color
-                	});
-				} else if(1/radius_ratio > 1.25){
-					bloop.eat(mybloop);
-					
-					socket.emit('eat', {
-						'id': mybloop.id,
-						'color': mybloop.color
-					});
-				}
+                    socket.emit('eat', {
+                        'id': bloop.id,
+                        'color': bloop.color
+                    });
+                } else if (1 / radius_ratio > 1.25) {
+                    bloop.eat(mybloop);
+
+                    socket.emit('eat', {
+                        'id': mybloop.id,
+                        'color': mybloop.color
+                    });
+                }
             }
         }
     });
@@ -270,6 +271,6 @@ function draw() {
         'color': mybloop.color
     });
 
-	leaderboard.set(socket.id, mybloop.radius);
-	socket.emit('leaderboard', mybloop.radius);
+    leaderboard.set(socket.id, mybloop.radius);
+    socket.emit('leaderboard', mybloop.radius);
 }
