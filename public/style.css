@@ -18,6 +18,10 @@ h1{
   color:#525252;
 }
 
+a{
+  color: yellow;
+}
+
 .box{
   background:white;
   width:300px;
