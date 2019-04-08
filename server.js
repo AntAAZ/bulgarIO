@@ -3,6 +3,36 @@ var express = require('express');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
+var mysql = require('mysql');
+var path = require('path');
+
+var con = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "root",
+  database: "bulgar_io"
+});
+
+con.connect(function(err) {
+  if (err) throw err;
+  console.log("Connected!");
+//   con.query("CREATE DATABASE bulgar_io", function (err, result) {
+//    if (err) throw err;
+//    console.log("Database created");
+//  });
+  
+//   var sql = "CREATE TABLE users (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(255), password VARCHAR(255))";
+//  con.query(sql, function (err, result) {
+//    if (err) throw err;
+//    console.log("Table created");
+//  });
+
+
+  
+});
+
+app.set('port', 3000);
+app.set('views', path.join(__dirname, 'public'));
 
 app.use(express.static('public'));
 
