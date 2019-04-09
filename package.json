@@ -4,8 +4,8 @@
   "description": "Implementation of agar.io",
   "dependencies": {
     "babel": "^6.23.0",
+    "esm": "^3.2.22",
     "express": "^4.16.4",
-    "mysql": "^2.16.0",
-    "socket.io": "^1.7.2"
+    "socket.io": "^2.2.0"
   }
 }
