@@ -1,9 +1,37 @@
 let express = require('express');
+let session = require('express-session');
 let app = express();
 let http = require('http').Server(app);
 let io = require('socket.io')(http);
-let path = require("path");
-const config = require('./config');
+let path = require('path');
+let bodyParser = require('body-parser');
+let cookieParser = require('cookie-parser');
+let config = require('./config/config');
+let dbconfig = require('./config/dbcon');
+
+let passport = require('passport');
+let flash = require('connect-flash');
+require('./passport')(passport);
+
+app.set('views', __dirname + '/views');
+app.use(cookieParser());
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
+
+app.set('view engine', 'ejs');
+
+app.use(session({
+    secret: 'justasecret',
+    resave: true,
+    saveUninitialized: true
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(flash());
+app.use(express.static(__dirname + '/public'));
+require('./route')(app, passport);
 
 const mapSize = config.mapSize,
     foodSize = config.food.size,
@@ -15,20 +43,6 @@ const mapSize = config.mapSize,
 let bloops = new Map(),
     leaderboard = new Map(),
     foods = [];
-
-/// routes
-app.get('/', function (req, res) {
-    res.sendFile(path.join(__dirname + '/public/main/index.html'));
-});
-app.get('/game.js', function (req, res) {
-    res.sendFile(path.join(__dirname + '/public/main/game.js'));
-});
-app.get('/events/events.js', function (req, res) {
-    res.sendFile(path.join(__dirname + '/public/events/events.js'));
-});
-app.get('/api/objects.js', function (req, res) {
-    res.sendFile(path.join(__dirname + '/public/api/objects.js'));
-});
 
 function objectInit(colorProperty) {
     let gameObject = {
@@ -47,11 +61,8 @@ function objectInit(colorProperty) {
 for (let i = 0; i < foodsAmount; i++) {
     foods.push(objectInit(foodColor));
 }
-
 io.on('connection', function (socket) {
-
     console.log(`ID ${socket.id} connected!`);
-
     socket.emit('init', {
         'foods': foods,
         'mapSize': mapSize,
@@ -61,21 +72,28 @@ io.on('connection', function (socket) {
     leaderboard.forEach(function (value, key) {
         socket.emit('leaderboard', {
             'id': key,
-            'score': value
+            'username': value.username,
+            'score': value.score
         });
     });
 
-    socket.on('spawn', function () {
+    socket.on('spawn', function (username) {
         let bloop = objectInit(playerColor);
         bloop.id = socket.id;
+        bloop.username = username;
         bloops.set(bloop.id, bloop);
-        leaderboard.set(bloop.id, bloop.radius);
+
+        leaderboard.set(bloop.id, {
+            username: bloop.username,
+            score: bloop.radius
+        });
         io.emit('spawn', bloop);
-    })
+    });
 
     socket.on('update', function (data) {
         bloops.set(data.id, {
             'id': data.id,
+            'username': data.username,
             'x': data.x,
             'y': data.y,
             'posx': data.posx,
@@ -85,19 +103,22 @@ io.on('connection', function (socket) {
         });
         socket.broadcast.emit('update', data);
     });
-    socket.on('leaderboard', function (score) {
-        leaderboard.set(socket.id, score);
-
-        io.emit('leaderboard', {
-            'id': socket.id,
-            'score': score
-        });
+    socket.on('leaderboard', function (data) {
+        data.id = socket.id;
+        leaderboard.set(socket.id);
+        io.emit('leaderboard', data);
     });
     socket.on('eat', function (data) {
         let bloop = objectInit(playerColor);
         bloop.id = data.id;
+        bloop.username = data.username;
+
         bloops.set(bloop.id, bloop);
-        leaderboard.set(bloop.id, bloop.radius);
+
+        leaderboard.set(bloop.id, {
+            username: bloop.username,
+            score: bloop.radius
+        });
         io.emit('spawn', bloop);
     });
     socket.on('updateFood', function (data) {
@@ -112,6 +133,7 @@ io.on('connection', function (socket) {
     socket.on('disconnect', function () {
         bloops.delete(socket.id);
         leaderboard.delete(socket.id);
+
         socket.broadcast.emit('delete', {
             'id': socket.id
         });
