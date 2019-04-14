@@ -2,28 +2,28 @@ drop database if exists Bulgar_io;
 CREATE DATABASE if not exists Bulgar_io;
 use Bulgar_io;
 
-create table Users(
-	Id INT AUTO_INCREMENT PRIMARY KEY,
-    Username VARCHAR(50) NOT NULL,
-    Password VARCHAR(50) NOT NULL,
-    Rank INT NOT NULL
+create table users(
+	id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL,
+    password VARCHAR(50) NOT NULL,
+    rank INT NOT NULL
 );
 
 create table Positions(
-	Id INT AUTO_INCREMENT PRIMARY KEY,
-    Name VARCHAR(30) NOT NULL,
-    User_ID INT,
+	id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(30) NOT NULL,
+    user_ID INT,
     
-    foreign key (User_ID) references Users(Id) on update cascade
+    foreign key (user_ID) references Users(id) on update cascade
     
 );
 
 create table Ranking(
-	Id INT AUTO_INCREMENT PRIMARY KEY,
-    User_ID INT,
-    Point INT NOT NULL
+	id INT AUTO_INCREMENT PRIMARY KEY,
+    user_ID INT,
+    point INT NOT NULL
     
-    foreign key (User_ID) references Users(Id) on update cascade
+    foreign key (user_ID) references users(id) on update cascade
 );
 
 

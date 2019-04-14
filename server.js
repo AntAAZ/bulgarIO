@@ -70,11 +70,13 @@ io.on('connection', function (socket) {
     });
 
     leaderboard.forEach(function (value, key) {
-        socket.emit('leaderboard', {
-            'id': key,
-            'username': value.username,
-            'score': value.score
-        });
+        if(value !== undefined){
+            socket.emit('leaderboard', {
+                'id': key,
+                'username': value.username,
+                'score': value.score    
+            });
+        }
     });
 
     socket.on('spawn', function (username) {

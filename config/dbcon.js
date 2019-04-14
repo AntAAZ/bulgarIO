@@ -1,6 +1,6 @@
 module.exports = {
-    host: 'localhost',
+    host: '127.0.0.1',
     user: 'root',
-    password: '123456',
-    database: 'bulgario'
+    password: 'password',
+    database: 'bulgar_io'
 };
