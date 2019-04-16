@@ -30,7 +30,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
-app.use(express.static(__dirname + '/public'));
+app.use(express.static('public'));
 require('./route')(app, passport);
 
 const mapSize = config.mapSize,
@@ -51,16 +51,18 @@ function objectInit(colorProperty) {
         'radius': colorProperty === playerColor ? playerSize : foodSize,
         'color': [colorProperty.red[0] + Math.random() * (colorProperty.red[1] - colorProperty.red[0]),
             colorProperty.green[0] + Math.random() * (colorProperty.green[1] - colorProperty.green[0]),
-            colorProperty.blue[0] + Math.random() * (colorProperty.blue[1] - colorProperty.blue[0])]
+            colorProperty.blue[0] + Math.random() * (colorProperty.blue[1] - colorProperty.blue[0]),
+            colorProperty.alpha[0] + Math.random() * (colorProperty.alpha[1] - colorProperty.alpha[0])]
     }
     gameObject.posx = gameObject.x;
     gameObject.posy = gameObject.y;
+
+    if(colorProperty == foodColor){
+        gameObject.index
+    }
     return gameObject;
 }
 
-for (let i = 0; i < foodsAmount; i++) {
-    foods.push(objectInit(foodColor));
-}
 io.on('connection', function (socket) {
     console.log(`ID ${socket.id} connected!`);
     socket.emit('init', {
@@ -74,7 +76,7 @@ io.on('connection', function (socket) {
             socket.emit('leaderboard', {
                 'id': key,
                 'username': value.username,
-                'score': value.score    
+                'score': value.score
             });
         }
     });
@@ -85,10 +87,12 @@ io.on('connection', function (socket) {
         bloop.username = username;
         bloops.set(bloop.id, bloop);
 
-        leaderboard.set(bloop.id, {
+        let data = {
             username: bloop.username,
             score: bloop.radius
-        });
+        }
+
+        leaderboard.set(bloop.id, data);
         io.emit('spawn', bloop);
     });
 
@@ -123,24 +127,35 @@ io.on('connection', function (socket) {
         });
         io.emit('spawn', bloop);
     });
-    socket.on('updateFood', function (data) {
-        foods[data.index] = objectInit(foodColor);
+    socket.on('eatFood', function (data) {
+        foods.splice(data.index, 1);
 
-        io.emit('updateFood', {
-            'index': data.index,
-            'initializer': foods[data.index]
+        socket.broadcast.emit('eatFood', {
+            'index': data.index
         });
     });
-
     socket.on('disconnect', function () {
         bloops.delete(socket.id);
         leaderboard.delete(socket.id);
 
-        socket.broadcast.emit('delete', {
+        io.emit('delete', {
             'id': socket.id
         });
         console.log(`ID ${socket.id} disconnected!`);
     });
+    function spawnFoods(){
+        if(foods.length >= foodsAmount){
+            return;
+        }
+
+        let food = objectInit(foodColor);
+        foods.push(food);
+
+        io.emit('addFood', {
+            'initializer': food
+        });
+    }
+    setInterval(spawnFoods, 100);
 });
 
 

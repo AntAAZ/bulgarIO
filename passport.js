@@ -5,7 +5,6 @@ var bcrypt = require('bcrypt-nodejs');
 var dbconfig = require('./config/dbcon');
 var connection = mysql.createConnection(dbconfig);
 
-connection.query('CREATE DATABASE IF NOT EXISTS ' + dbconfig.database + ';');
 connection.query('USE ' + dbconfig.database);
 
 module.exports = function (passport) {
@@ -44,6 +43,8 @@ module.exports = function (passport) {
 
                             connection.query(insertQuery, [newUserMysql.username, newUserMysql.password],
                                 function (err, rows) {
+                                    console.log(err);
+                                    console.log(rows.insertId);
                                     newUserMysql.id = rows.insertId;
 
                                     return done(null, newUserMysql);

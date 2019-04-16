@@ -7,7 +7,8 @@ class Food {
     }
 
     show() {
-        fill(color(this.color));
+        noStroke();
+        fill(this.color);
         ellipse(this.pos.x, this.pos.y, this.radius * 2, this.radius * 2);
     }
 
@@ -24,7 +25,6 @@ class Bloop extends Food {
 
     eat(other) {
 
-        this.radius = sqrt(pow(this.radius, 2) + pow(other.radius, 2));
 
         if (other instanceof Bloop) {
             socket.emit('eat', {
@@ -32,7 +32,11 @@ class Bloop extends Food {
                 'username': other.username,
                 'color': other.color
             });
+            this.radius = sqrt(pow(this.radius, 2) + pow(other.radius, 2));
+        } else {
+            this.radius = sqrt(pow(this.radius, 2) + pow(other.radius, 1.5));
         }
+
         socket.emit('leaderboard', {
             username: this.username,
             score: this.radius

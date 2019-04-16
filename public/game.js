@@ -1,6 +1,5 @@
 /// establishing socket connection
 var socket = io();
-var username = document.getElementById('username').value;
 
 var bloops = new Map(),
     leaderboard = new Map(),
@@ -11,7 +10,7 @@ function setup() {
     createCanvas(innerWidth, innerHeight);
 
     /// spawning the player & sending username to the server
-    socket.emit('spawn', username);
+    socket.emit('spawn', document.getElementById('username').value);
 }
 
 function draw() {
@@ -19,17 +18,14 @@ function draw() {
     background(0); /// sets the background color to black
 
     /// show something else while the socket is being initialized
-    if (!socket.connected) {
+    if (!socket.connected || !bloops.has(socket.id)) {
         showLoadingScreen('Connecting...');
-        return;
-    }
-
-    if (!bloops.has(socket.id)) {
         return;
     }
 
     let mybloop = bloops.get(socket.id);
 
+    showFps();
     showCoordinates({
         'x': mybloop.pos.x,
         'y': mybloop.pos.y
@@ -53,7 +49,8 @@ function draw() {
 
             mybloop.eat(food);
 
-            socket.emit('updateFood', {
+            foods.splice(index, 1);
+            socket.emit('eatFood', {
                 'index': index
             });
         }
@@ -81,11 +78,11 @@ function draw() {
     mybloop.update(); /// updates the new coordinates of your player object
     mybloop.constrain(); /// keeps your player object inside the map
 
-    bloops.set(socket.id, mybloop); /// inserts your player object with the updated properties
+    //bloops.set(socket.id, mybloop); /// inserts your player object with the updated properties
 
     /// sending your new client data to the server
     socket.emit('update', {
-        'username': username,
+        'username': mybloop.username,
         'id': mybloop.id,
         'x': mybloop.x,
         'y': mybloop.y,
@@ -154,4 +151,18 @@ function showCoordinates(data) {
 
     fill(color([240, 230, 140]));
     text(`<${floor(data.x)},${floor(data.y)}>`, 50, 50);
+}
+/// show fps
+function showFps() {
+    textFont("Courier New");
+    textSize(25);
+    textAlign(LEFT);
+
+    let fps = frameRate();
+    if(fps < 30){
+        fill(color(255, 0, 0));
+    } else {
+        fill(color([140, 230, 140]));
+    }
+    text(`FPS: ${floor(frameRate())}`, 50, height-50);
 }

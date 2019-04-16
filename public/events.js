@@ -2,10 +2,11 @@ socket.on('spawn', function (data) {
     let bloop = new Bloop(data.x, data.y, data.radius, data.color, data.username, data.id);
     bloops.set(data.id, bloop);
 
-    leaderboard.set(data.id, {
+    let lbData = {
         username: bloop.username,
         score: bloop.radius
-    });
+    }
+    leaderboard.set(data.id, lbData);
 });
 
 socket.on('init', function (data) {
@@ -22,9 +23,12 @@ socket.on('update', function (data) {
     bloops.set(data.id, bloop);
 });
 
-socket.on('updateFood', function (data) {
+socket.on('addFood', function (data) {
     let foodObject = data.initializer;
-    foods[data.index] = new Food(foodObject.x, foodObject.y, foodObject.radius, foodObject.color);
+    foods.push(new Food(foodObject.x, foodObject.y, foodObject.radius, foodObject.color));
+});
+socket.on('eatFood', function (data) {
+    food.splice(data.index, 1);
 });
 
 socket.on('delete', function (data) {
