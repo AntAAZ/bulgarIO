@@ -59,9 +59,10 @@ function objectInit(colorProperty) {
 
     if(colorProperty == foodColor){
         gameObject.index
-    }
+    }    
     return gameObject;
 }
+
 
 io.on('connection', function (socket) {
     console.log(`ID ${socket.id} connected!`);
@@ -130,7 +131,7 @@ io.on('connection', function (socket) {
     socket.on('eatFood', function (data) {
         foods.splice(data.index, 1);
 
-        socket.broadcast.emit('eatFood', {
+        io.emit('eatFood', {
             'index': data.index
         });
     });
@@ -155,7 +156,7 @@ io.on('connection', function (socket) {
             'initializer': food
         });
     }
-    setInterval(spawnFoods, 100);
+    setInterval(spawnFoods, 30);
 });
 
 
