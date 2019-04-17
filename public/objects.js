@@ -48,7 +48,7 @@ class Bloop extends Food {
         textSize(this.radius / 2);
         textAlign(CENTER);
 
-        fill(255);
+        fill(100);
         text(this.username, this.pos.x, this.pos.y + this.radius / 4);
     }
 

@@ -16,7 +16,12 @@ function setup() {
 function draw() {
 
     background(0); /// sets the background color to black
-
+    h = hour();
+    if(h > 8 && h < 20){
+        background(255);
+    }    
+    
+    
     /// show something else while the socket is being initialized
     if (!socket.connected || !bloops.has(socket.id)) {
         showLoadingScreen('Connecting...');
