@@ -7,9 +7,9 @@ config.player = {
     size: 64,
     speed: 10,
     color: {
-        red: [100, 156],
-        green: [100, 156],
-        blue: [200, 256],
+        red: [50, 255],
+        green: [50, 255],
+        blue: [50, 256],
 	    alpha: [100, 256]
     }
 };
