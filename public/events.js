@@ -28,7 +28,7 @@ socket.on('addFood', function (data) {
     foods.push(new Food(foodObject.x, foodObject.y, foodObject.radius, foodObject.color));
 });
 socket.on('eatFood', function (data) {
-    food.splice(data.index, 1);
+    foods.splice(data.index, 1);
 });
 
 socket.on('delete', function (data) {
@@ -37,5 +37,8 @@ socket.on('delete', function (data) {
 });
 
 socket.on('leaderboard', function (data) {
-    leaderboard.set(data.id, {username: data.username, score: data.score});
+    leaderboard.set(data.id, {
+        username: data.username, 
+        score: data.score
+    });
 });

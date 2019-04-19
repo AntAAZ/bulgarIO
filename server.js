@@ -56,10 +56,7 @@ function objectInit(colorProperty) {
     }
     gameObject.posx = gameObject.x;
     gameObject.posy = gameObject.y;
-
-    if(colorProperty == foodColor){
-        gameObject.index
-    }    
+ 
     return gameObject;
 }
 
@@ -112,8 +109,11 @@ io.on('connection', function (socket) {
     });
     socket.on('leaderboard', function (data) {
         data.id = socket.id;
-        leaderboard.set(socket.id);
-        io.emit('leaderboard', data);
+        leaderboard.set(data.id, {
+			username: data.username,
+			score: data.score
+		});
+        socket.broadcast.emit('leaderboard', data);
     });
     socket.on('eat', function (data) {
         let bloop = objectInit(playerColor);
@@ -131,9 +131,10 @@ io.on('connection', function (socket) {
     socket.on('eatFood', function (data) {
         foods.splice(data.index, 1);
 
-        io.emit('eatFood', {
+        socket.broadcast.emit('eatFood', {
             'index': data.index
         });
+        
     });
     socket.on('disconnect', function () {
         bloops.delete(socket.id);

@@ -37,6 +37,11 @@ class Bloop extends Food {
             this.radius = sqrt(pow(this.radius, 2) + pow(other.radius, 1.5));
         }
 
+		leaderboard.set(this.id, {
+			username: this.username,
+			score: this.score
+		});
+
         socket.emit('leaderboard', {
             username: this.username,
             score: this.radius

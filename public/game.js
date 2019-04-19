@@ -58,6 +58,13 @@ function draw() {
             socket.emit('eatFood', {
                 'index': index
             });
+            
+            let lbData = {
+                username: mybloop.username,
+                score: mybloop.radius
+            }
+            leaderboard.set(mybloop.id, lbData);
+            socket.emit('leaderboard', lbData);
         }
     });
 
