@@ -1,10 +1,12 @@
 let mysql = require('mysql');
 
 
-module.exports = function (app, passport) {
+module.exports = function(app, passport) {
 
-    app.get('/login', function (req, res) {
-        res.render('login.ejs', {message: req.flash('loginMessage')});
+    app.get('/login', function(req, res) {
+        res.render('login.ejs', {
+            message: req.flash('loginMessage')
+        });
     });
 
     app.post('/login', passport.authenticate('local-login', {
@@ -12,7 +14,7 @@ module.exports = function (app, passport) {
             failureRedirect: '/login',
             failureFlash: true
         }),
-        function (req, res) {
+        function(req, res) {
             if (req.body.remember) {
                 req.session.cookie.maxAge = 1000 * 60 * 3;
             } else {
@@ -21,8 +23,10 @@ module.exports = function (app, passport) {
             res.redirect('/');
         });
 
-    app.get('/register', function (req, res) {
-        res.render('register.ejs', {message: req.flash('registerMessage')});
+    app.get('/register', function(req, res) {
+        res.render('register.ejs', {
+            message: req.flash('registerMessage')
+        });
     });
 
     app.post('/register', passport.authenticate('local-register', {
@@ -31,15 +35,16 @@ module.exports = function (app, passport) {
         failureFlash: true
     }));
 
-    app.get('/', isLoggedIn, function (req, res) {
+    app.get('/', isLoggedIn, function(req, res) {
         res.render('index.ejs', {
             user: req.user
         });
     });
 
-    app.get('/logout', function (req, res) {
-        req.logout();
-        res.redirect('/login');
+    app.get('/logout', function(req, res) {
+        req.session.destroy(function(err) {
+            res.redirect('/login');
+        });
     })
 };
 
