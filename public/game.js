@@ -1,10 +1,11 @@
-/// establishing socket connection
 var socket = io();
 
 var bloops = new Map(),
     leaderboard = new Map(),
     mapSize, playerSize,
-    foods = [], zoom = 1;
+    playerSpeed, foods = [],
+    powerUps = [], steps = [],
+    zoom = 1;
 
 function setup() {
     createCanvas(innerWidth, innerHeight);
@@ -16,12 +17,7 @@ function setup() {
 function draw() {
 
     background(0); /// sets the background color to black
-    h = hour();
-    if(h > 8 && h < 20){
-        background(255);
-    }    
-    
-    
+
     /// show something else while the socket is being initialized
     if (!socket.connected || !bloops.has(socket.id)) {
         showLoadingScreen('Connecting...');
@@ -29,6 +25,7 @@ function draw() {
     }
 
     let mybloop = bloops.get(socket.id);
+
 
     showFps();
     showCoordinates({
@@ -43,7 +40,11 @@ function draw() {
     scale(sqrt(zoom));
     translate(-mybloop.pos.x, -mybloop.pos.y);
 
-    /// interating through the foods
+    steps.forEach(function (step) {
+       if (mybloop.has_visibility_for(step, sqrt(zoom))) {
+            step.show();
+        }
+    });
     foods.filter(food => mybloop.has_visibility_for(food, sqrt(zoom))).forEach(function (food) {
         food.show();
         if (mybloop.intersects(food) && mybloop.radius > food.radius) {
@@ -58,19 +59,32 @@ function draw() {
             socket.emit('eatFood', {
                 'index': index
             });
-            
+
             let lbData = {
                 username: mybloop.username,
                 score: mybloop.radius
             }
-            leaderboard.set(mybloop.id, lbData);
-            socket.emit('leaderboard', lbData);
+            mybloop.updateOnLeaderboard(lbData);
         }
     });
+    powerUps.filter(powerUp => mybloop.has_visibility_for(powerUp, sqrt(zoom))).forEach(function (powerUp) {
+        powerUp.show();
+        powerUp.showType();
+        if (mybloop.intersects(powerUp)) {
 
-    /// iterating through the map of clients to draw them & handle collision checks
+            let index = powerUps.findIndex(function (target) {
+                return powerUp === target;
+            });
+
+            mybloop.eat(powerUp);
+
+            powerUps.splice(index, 1);
+            socket.emit('eatPowerUp', {
+                'index': index
+            });
+        }
+    });
     bloops.forEach(function (bloop) {
-        /// do this only when we can see the other player
         if (mybloop.has_visibility_for(bloop, sqrt(zoom))) {
             bloop.show();
             bloop.showName();
@@ -93,16 +107,7 @@ function draw() {
     //bloops.set(socket.id, mybloop); /// inserts your player object with the updated properties
 
     /// sending your new client data to the server
-    socket.emit('update', {
-        'username': mybloop.username,
-        'id': mybloop.id,
-        'x': mybloop.x,
-        'y': mybloop.y,
-        'color': mybloop.color,
-        'posx': mybloop.pos.x,
-        'posy': mybloop.pos.y,
-        'radius': mybloop.radius
-    });
+
 }
 
 /// on canvas resize
@@ -171,7 +176,7 @@ function showFps() {
     textAlign(LEFT);
 
     let fps = frameRate();
-    if(fps < 30){
+    if(fps < 35){
         fill(color(255, 0, 0));
     } else {
         fill(color([140, 230, 140]));

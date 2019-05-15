@@ -38,17 +38,24 @@ const mapSize = config.mapSize,
     foodColor = config.food.color,
     playerColor = config.player.color,
     playerSize = config.player.size,
-    foodsAmount = config.food.amount;
+    playerSpeed = config.player.speed,
+    foodsAmount = config.food.amount,
+    powerUpSize = config.powerUp.size,
+    powerUpColor = config.powerUp.color,
+    powerUpAmount = config.powerUp.amount,
+    powerUpNames = config.powerUp.names;
 
 let bloops = new Map(),
     leaderboard = new Map(),
-    foods = [];
+    foods = [], powerUps = [],
+    powerUpVel = [], steps = [];
+
 
 function objectInit(colorProperty) {
     let gameObject = {
         'x': -mapSize + Math.random() * mapSize * 2,
         'y': -mapSize + Math.random() * mapSize * 2,
-        'radius': colorProperty === playerColor ? playerSize : foodSize,
+        'radius': foodSize,
         'color': [colorProperty.red[0] + Math.random() * (colorProperty.red[1] - colorProperty.red[0]),
             colorProperty.green[0] + Math.random() * (colorProperty.green[1] - colorProperty.green[0]),
             colorProperty.blue[0] + Math.random() * (colorProperty.blue[1] - colorProperty.blue[0]),
@@ -56,17 +63,35 @@ function objectInit(colorProperty) {
     }
     gameObject.posx = gameObject.x;
     gameObject.posy = gameObject.y;
- 
+
+    if(colorProperty === playerColor){
+        gameObject.radius = playerSize;
+        gameObject.speed = playerSpeed;
+        return gameObject;
+    }
+
+    if(colorProperty === powerUpColor){
+        gameObject.radius = powerUpSize;
+        gameObject.name = powerUpNames[Math.floor(Math.random()*powerUpNames.length)];
+        if(gameObject.name == "teleport" && Math.random() >= 0.1){
+             gameObject.name = powerUpNames[Math.floor(Math.random()*powerUpNames.length)];
+        }
+    }
     return gameObject;
 }
 
 
 io.on('connection', function (socket) {
+    spawnFoods();
+    spawnPowerUps();
+
     console.log(`ID ${socket.id} connected!`);
     socket.emit('init', {
         'foods': foods,
+        'powerUps': powerUps,
         'mapSize': mapSize,
-        'playerSize': playerSize
+        'playerSize': playerSize,
+        'playerSpeed': playerSpeed
     });
 
     leaderboard.forEach(function (value, key) {
@@ -93,7 +118,9 @@ io.on('connection', function (socket) {
         leaderboard.set(bloop.id, data);
         io.emit('spawn', bloop);
     });
-
+    socket.on('sendStep', function(data) {
+        socket.broadcast.emit('sendStep', data);
+    });
     socket.on('update', function (data) {
         bloops.set(data.id, {
             'id': data.id,
@@ -134,7 +161,13 @@ io.on('connection', function (socket) {
         socket.broadcast.emit('eatFood', {
             'index': data.index
         });
-        
+    });
+    socket.on('eatPowerUp', function (data) {
+        powerUps.splice(data.index, 1);
+
+        socket.broadcast.emit('eatPowerUp', {
+            'index': data.index
+        });
     });
     socket.on('disconnect', function () {
         bloops.delete(socket.id);
@@ -156,8 +189,21 @@ io.on('connection', function (socket) {
         io.emit('addFood', {
             'initializer': food
         });
+        setTimeout(spawnFoods, 30);
     }
-    setInterval(spawnFoods, 30);
+    function spawnPowerUps(){
+        if(powerUps.length >= powerUpAmount){
+            return;
+        }
+
+        let powerUp = objectInit(powerUpColor);
+        powerUps.push(powerUp);
+
+        io.emit('addPowerUp', {
+            'initializer': powerUp
+        });
+        setTimeout(spawnPowerUps, 100);
+    }
 });
 
 
